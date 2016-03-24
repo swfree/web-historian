@@ -3,7 +3,7 @@ var url = require('url');
 var path = require('path');
 var archive = require('../helpers/archive-helpers');
 var qs = require('querystring');
-
+var request = require('request');
 
 var defaultCorsHeaders = {
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -59,13 +59,27 @@ var postReq = function(req, res) {
     postContents += chunk;
   });
   req.on('end', function() {
-    var postedURL = qs.parse(postContents).url + '\n'
-    fs.appendFile(archive.paths.list, postedURL, function(err) {
-      handleError(res, err);
-      res.writeHead(302, {'Content-Type': 'text/plain'});
-      res.end();
+    var postedURL = qs.parse(postContents).url;
+    archive.isUrlArchived(postedURL, function(exists){
+      if(exists) {
+        res.writeHead(302, {
+          'content-type': 'text/html',
+          'location': 'http://127.0.0.1:8080' + '/' + postedURL
+        });
+        res.end('redirecting');
+      } else {
+        archive.isUrlInList(postedURL, function(is) {
+          if (!is) {
+            archive.addUrlToList(postedURL); // worker will ensure urls in list are archived
+          }
+          res.writeHead(302, {
+            'content-type': 'text/html',
+            'location': 'http://127.0.0.1:8080' + '/' + 'loading.html'
+          });
+          res.end('redirecting');
+        });
+      }
     });
-  });
 }
 
 var handleError = function(res, err) {

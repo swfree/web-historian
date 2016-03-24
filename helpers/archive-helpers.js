@@ -1,6 +1,8 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var http = require('http');
+var request = require("request");
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -39,12 +41,14 @@ exports.isUrlInList = function(url, callback) {
 };
 
 exports.addUrlToList = function(urlToAdd, callback) {
+  // FIXBUG: appendFile instead of writeFile
   fs.writeFile(exports.paths.list, urlToAdd, 'utf8', function() {
     callback();
   });
 };
 
 exports.isUrlArchived = function(url, callback) {
+  // TODO: should probably just use fs.readdir instead of readfile
   fs.readFile(exports.paths.archivedSites + '/' + url, 'utf8', function(err, file) {
     err ? callback(false) : callback(true)
   });
@@ -53,9 +57,15 @@ exports.isUrlArchived = function(url, callback) {
 exports.downloadUrls = function(urlArray) {
   urlArray.forEach(function(pendingUrl) {
     exports.isUrlArchived(pendingUrl, function(exists) {
+      // console.log(pendingUrl + ' ' + exists); // test is re-initializing testdata folder each time
+
       if (!exists) {
-        fs.writeFile(exports.paths.archivedSites + '/' + pendingUrl, pendingUrl, function(err) {
-          if (err) { throw err; }
+        var editPendingUrl = 'http://' + pendingUrl;
+        request(editPendingUrl, function(error, response, body) {
+          if (error) { throw error; }
+          fs.writeFile(exports.paths.archivedSites + '/' + pendingUrl, body, function(error) {
+            if (error) { throw error; }
+          });
         });
       } 
     });
