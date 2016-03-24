@@ -1,6 +1,9 @@
 var fs = require('fs');
 var url = require('url');
 var path = require('path');
+var archive = require('../helpers/archive-helpers');
+var qs = require('querystring');
+
 
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
@@ -37,13 +40,13 @@ var getStaticFiles = function(req, res, statusCode) {
       res.writeHead(statusCode, defaultCorsHeaders);
       res.end(fileContents);
     } else {
-      res.writeHead(404, defaultCorsHeaders);
+      res.writeHead(200, defaultCorsHeaders);
       res.end();
     }
   });
 };
 
-var postreq = function(req, res, statusCode) {
+var postReq = function(req, res, statusCode) {
   if (req.method === 'POST' && req.url === '/') {
     var postContents = '';
     req.setEncoding('utf8');
@@ -61,7 +64,14 @@ var postreq = function(req, res, statusCode) {
   }
 }
 
+var handleError = function(res, err) {
+  if(err) {
+    res.writeHead(404, {'Content-Type': 'text/plain'});
+    res.end('' + err);
+  }
+}
 
 // exports.getMessages = getMessages;
 // exports.postMessages = postMessages;
 exports.getStaticFiles = getStaticFiles;
+exports.postReq = postReq;
