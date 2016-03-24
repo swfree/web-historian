@@ -6,14 +6,13 @@ var qs = require('querystring');
 
 
 var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'access-control-allow-headers': 'content-type, accept',
   'access-control-max-age': 10,
 };
 
 
-var getStaticFiles = function(req, res, statusCode) {
+var getStaticFiles = function(req, res) {
   var uri = url.parse(req.url).pathname;
   var filePath = (uri === '' || uri === '/')
     ? filePath = path.join(__dirname, 'public', 'index.html')
@@ -37,31 +36,36 @@ var getStaticFiles = function(req, res, statusCode) {
       if (path.extname(filePath) === '.gif') {
         defaultCorsHeaders['Content-Type'] = 'image/gif';
       }
-      res.writeHead(statusCode, defaultCorsHeaders);
+      res.writeHead(200, defaultCorsHeaders);
       res.end(fileContents);
     } else {
-      res.writeHead(200, defaultCorsHeaders);
-      res.end();
+      handleError(res, err);
     }
   });
 };
 
-var postReq = function(req, res, statusCode) {
-  if (req.method === 'POST' && req.url === '/') {
-    var postContents = '';
-    req.setEncoding('utf8');
-    req.on('data', function(chunk) {
-      postContents += chunk;
+var getSiteArchiveStaticFiles = function(req, res) {
+  fs.readFile(archive.paths.archivedSites + req.url, 'utf8', function(err, data) {
+    handleError(res, err);
+    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.end(data);
+  });  
+} 
+
+var postReq = function(req, res) {
+  var postContents = '';
+  req.setEncoding('utf8');
+  req.on('data', function(chunk) {
+    postContents += chunk;
+  });
+  req.on('end', function() {
+    var postedURL = qs.parse(postContents).url + '\n'
+    fs.appendFile(archive.paths.list, postedURL, function(err) {
+      handleError(res, err);
+      res.writeHead(302, {'Content-Type': 'text/plain'});
+      res.end();
     });
-    req.on('end', function() {
-      var postedURL = qs.parse(postContents).url + '\n'
-      fs.appendFile(archive.paths.list, postedURL, function(err) {
-        handleError(res, err);
-        res.writeHead(302, {'Content-Type': 'text/plain'});
-        res.end();
-      });
-    });
-  }
+  });
 }
 
 var handleError = function(res, err) {
@@ -74,4 +78,5 @@ var handleError = function(res, err) {
 // exports.getMessages = getMessages;
 // exports.postMessages = postMessages;
 exports.getStaticFiles = getStaticFiles;
+exports.getArchiveStaticFiles = getSiteArchiveStaticFiles;
 exports.postReq = postReq;
