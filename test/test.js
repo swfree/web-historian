@@ -82,10 +82,11 @@ describe('archive helpers', function() {
       var urlArray = ['example1.com', 'example2.com'];
       fs.writeFileSync(archive.paths.list, urlArray.join('\n'));
 
-      archive.readListOfUrls(function(urls) {
-        expect(urls).to.deep.equal(urlArray);
-        done();
-      });
+      archive.readListOfUrlsAsync()
+        .then(function(urls) {
+          expect(urls).to.deep.equal(urlArray);
+          done();
+        });
     });
   });
 
@@ -97,15 +98,17 @@ describe('archive helpers', function() {
       var counter = 0;
       var total = 2;
 
-      archive.isUrlInList('example1.com', function (is) {
-        expect(is);
-        if (++counter === total) { done(); }
-      });
+      archive.addUrlToListAsync('example1.com' )
+        .then(function (is) {
+          expect(is);
+          if (++counter === total) { done(); }
+        });     
 
-      archive.isUrlInList('gibberish', function (is) {
-        expect(!is);
-        if (++counter === total) { done(); }
-      });
+      archive.addUrlToListAsync('gibberish' )
+        .then(function (is) {
+          expect(!is);
+          if (++counter === total) { done(); }
+        });
     });
   });
 
@@ -114,12 +117,14 @@ describe('archive helpers', function() {
       var urlArray = ['example1.com', 'example2.com\n'];
       fs.writeFileSync(archive.paths.list, urlArray.join('\n'));
 
-      archive.addUrlToList('someurl.com', function () {
-        archive.isUrlInList('someurl.com', function (is) {
-          expect(is);
-          done();
+      archive.addUrlToListAsync('someurl.com')
+        .then(function () {
+          archive.isUrlInListAsync('someurl.com')
+            .then(function (is) {
+              expect(is);
+              done();
+            });
         });
-      });
     });
   });
 
@@ -130,15 +135,17 @@ describe('archive helpers', function() {
       var counter = 0;
       var total = 2;
 
-      archive.isUrlArchived('www.example.com', function (exists) {
-        expect(exists);
-        if (++counter === total) { done(); }
-      });
+      archive.isUrlArchivedAsync('www.example.com')
+        .then(function (exists) {
+          expect(exists);
+          if (++counter === total) { done(); }
+        });
 
-      archive.isUrlArchived('www.notarchived.com', function (exists) {
-        expect(!exists);
-        if (++counter === total) { done(); }
-      });
+      archive.isUrlArchivedAsync('www.notarchived.com') 
+        .then(function (exists) {
+          expect(!exists);
+          if (++counter === total) { done(); }
+        });
     });
   });
 
