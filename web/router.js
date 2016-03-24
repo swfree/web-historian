@@ -59,7 +59,7 @@ var postReq = function(req, res) {
   });
   req.on('end', function() {
     var postedURL = qs.parse(postContents).url;
-    archive.isUrlArchived(postedURL, function(exists){
+    archive.isUrlArchived(postedURL, function(nullError, exists){
       if(exists) {
         res.writeHead(302, {
           'content-type': 'text/html',
@@ -67,9 +67,9 @@ var postReq = function(req, res) {
         });
         res.end('redirecting');
       } else {
-        archive.isUrlInList(postedURL, function(is) {
+        archive.isUrlInList(postedURL, function(nullError, is) {
           if (!is) {
-            archive.addUrlToList(postedURL, function() {}); // worker will ensure urls in list are archived
+            archive.addUrlToList(postedURL, function(nullError) {}); // worker will ensure urls in list are archived
           }
           res.writeHead(302, {
             'content-type': 'text/html',
