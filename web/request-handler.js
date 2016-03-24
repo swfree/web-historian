@@ -4,6 +4,8 @@ var url = require('url');
 
 exports.handleRequest = function (req, res) {
 
+  
+
   if (req.method === 'GET') {
     fs.existsSync(__dirname + '/public/' + req.url)
     ? router.getStaticFiles(req, res)

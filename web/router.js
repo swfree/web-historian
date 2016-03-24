@@ -11,7 +11,6 @@ var defaultCorsHeaders = {
   'access-control-max-age': 10,
 };
 
-
 var getStaticFiles = function(req, res) {
   var uri = url.parse(req.url).pathname;
   var filePath = (uri === '' || uri === '/')
@@ -47,7 +46,7 @@ var getStaticFiles = function(req, res) {
 var getSiteArchiveStaticFiles = function(req, res) {
   fs.readFile(archive.paths.archivedSites + req.url, 'utf8', function(err, data) {
     handleError(res, err);
-    res.writeHead(200, {'Content-Type': 'text/plain'});
+    res.writeHead(200, {'Content-Type': 'text/html'});
     res.end(data);
   });  
 } 
@@ -70,7 +69,7 @@ var postReq = function(req, res) {
       } else {
         archive.isUrlInList(postedURL, function(is) {
           if (!is) {
-            archive.addUrlToList(postedURL); // worker will ensure urls in list are archived
+            archive.addUrlToList(postedURL, function() {}); // worker will ensure urls in list are archived
           }
           res.writeHead(302, {
             'content-type': 'text/html',
@@ -80,6 +79,7 @@ var postReq = function(req, res) {
         });
       }
     });
+  });
 }
 
 var handleError = function(res, err) {

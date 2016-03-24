@@ -41,10 +41,12 @@ exports.isUrlInList = function(url, callback) {
 };
 
 exports.addUrlToList = function(urlToAdd, callback) {
-  // FIXBUG: appendFile instead of writeFile
-  fs.writeFile(exports.paths.list, urlToAdd, 'utf8', function() {
-    callback();
-  });
+  if(urlToAdd !== '') {
+    urlToAdd = urlToAdd.replace('http://', '');
+    fs.appendFile(exports.paths.list, urlToAdd + '\n', 'utf8', function() {
+      callback();
+    });
+  }
 };
 
 exports.isUrlArchived = function(url, callback) {
@@ -57,12 +59,16 @@ exports.isUrlArchived = function(url, callback) {
 exports.downloadUrls = function(urlArray) {
   urlArray.forEach(function(pendingUrl) {
     exports.isUrlArchived(pendingUrl, function(exists) {
+      console.log(pendingUrl);
       // console.log(pendingUrl + ' ' + exists); // test is re-initializing testdata folder each time
 
-      if (!exists) {
+      if (!exists && pendingUrl !== '') {
         var editPendingUrl = 'http://' + pendingUrl;
         request(editPendingUrl, function(error, response, body) {
-          if (error) { throw error; }
+          if (error) { 
+            console.log(editPendingUrl);
+            throw error; 
+          }
           fs.writeFile(exports.paths.archivedSites + '/' + pendingUrl, body, function(error) {
             if (error) { throw error; }
           });
