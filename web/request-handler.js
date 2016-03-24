@@ -41,7 +41,7 @@ exports.handleRequest = function (req, res) {
       var postedURL = qs.parse(postContents).url + '\n'
       fs.appendFile(archive.paths.list, postedURL, function(err) {
         handleError(res, err);
-        res.writeHead(302);
+        res.writeHead(302, {'Content-Type': 'text/plain'});
         res.end();
       });
     });
@@ -54,5 +54,3 @@ var handleError = function(res, err) {
     res.end('' + err);
   }
 }
-
-// GET '/www.google.com'

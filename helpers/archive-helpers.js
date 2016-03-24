@@ -25,20 +25,40 @@ exports.initialize = function(pathsObj) {
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = function(callback) {
-  fs.readFile(exports.paths.list, 'utf8', function(err, file) {
+exports.readListOfUrls = function(callback, path) {
+  path = path === undefined ? exports.paths.list : path;
+  fs.readFile(path, 'utf8', function(err, file) {
     callback(file.split('\n'));
   });
 };
 
-exports.isUrlInList = function() {
+exports.isUrlInList = function(url, callback) {
+  exports.readListOfUrls(function(urls) {
+    callback(_.contains(urls, url))
+  });
 };
 
-exports.addUrlToList = function() {
+exports.addUrlToList = function(urlToAdd, callback) {
+  fs.writeFile(exports.paths.list, urlToAdd, 'utf8', function() {
+    callback();
+  });
 };
 
-exports.isUrlArchived = function() {
+exports.isUrlArchived = function(url, callback) {
+  fs.readFile(exports.paths.archivedSites + '/' + url, 'utf8', function(err, file) {
+    err ? callback(false) : callback(true)
+  });
 };
 
-exports.downloadUrls = function() {
+exports.downloadUrls = function(urlArray) {
+  urlArray.forEach(function(pendingUrl) {
+    exports.isUrlArchived(pendingUrl, function(exists) {
+      if (!exists) {
+          fs.writeFile(exports.paths.archivedSites + '/' + pendingUrl, pendingUrl, function(err) {
+            if (err) { throw err; }
+          });
+        
+      } 
+    });
+  });
 };
