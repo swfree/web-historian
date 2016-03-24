@@ -17,7 +17,7 @@ var archive = require('../helpers/archive-helpers.js');
   // * * * * * node /Users/student/Codes/2016-02-web-historian/workers/htmlfetcher.js >> /Users/student/Codes/2016-02-web-historian/workers/htmlfetcher.log 2>&1
 
 exports.fetcher = function() {
-  archive.readListOfUrls(function(urlArr) {
+  archive.readListOfUrls(function(nullError, urlArr) {
     archive.downloadUrls(urlArr);
   });
 }
