@@ -2,7 +2,8 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
 var http = require('http');
-var request = require("request");
+var request = require('request');
+var Promise = require('bluebird');
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -24,56 +25,62 @@ exports.initialize = function(pathsObj) {
   });
 };
 
+
+
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
-
 exports.readListOfUrls = function(callback) {
   var path = exports.paths.list;
   fs.readFile(path, 'utf8', function(err, file) {
-    callback(file.split('\n'));
+    callback(null, file.split('\n'));
   });
 };
+exports.readListOfUrlsAsync = Promise.promisify(exports.readListOfUrls);
+
 
 exports.isUrlInList = function(url, callback) {
-  exports.readListOfUrls(function(urls) {
-    callback(_.contains(urls, url))
-  });
+  exports.readListOfUrlsAsync()
+    .then(function(urls) {
+      callback(null, _.contains(urls, url));
+    });
 };
+exports.isUrlInListAsync = Promise.promisify(exports.isUrlInList);
+
 
 exports.addUrlToList = function(urlToAdd, callback) {
   if(urlToAdd !== '') {
     urlToAdd = urlToAdd.replace('http://', '');
     fs.appendFile(exports.paths.list, urlToAdd + '\n', 'utf8', function() {
-      callback();
+      callback(null);
     });
   }
 };
+exports.addUrlToListAsync = Promise.promisify(exports.addUrlToList);
+
 
 exports.isUrlArchived = function(url, callback) {
-  // TODO: should probably just use fs.readdir instead of readfile
   fs.readFile(exports.paths.archivedSites + '/' + url, 'utf8', function(err, file) {
-    err ? callback(false) : callback(true)
+    err ? callback(null, false) : callback(null, true)
   });
 };
+exports.isUrlArchivedAsync = Promise.promisify(exports.isUrlArchived);
+
 
 exports.downloadUrls = function(urlArray) {
   urlArray.forEach(function(pendingUrl) {
-    exports.isUrlArchived(pendingUrl, function(exists) {
-      console.log(pendingUrl);
-      // console.log(pendingUrl + ' ' + exists); // test is re-initializing testdata folder each time
-
-      if (!exists && pendingUrl !== '') {
-        var editPendingUrl = 'http://' + pendingUrl;
-        request(editPendingUrl, function(error, response, body) {
-          if (error) { 
-            console.log(editPendingUrl);
-            throw error; 
-          }
-          fs.writeFile(exports.paths.archivedSites + '/' + pendingUrl, body, function(error) {
-            if (error) { throw error; }
+    exports.isUrlArchivedAsync(pendingUrl)
+      .then(function(exists) {
+        if (!exists && pendingUrl !== '') {
+          var editPendingUrl = 'http://' + pendingUrl;
+          request(editPendingUrl, function(error, response, body) {
+            if (error) { 
+              throw error; 
+            }
+            fs.writeFile(exports.paths.archivedSites + '/' + pendingUrl, body, function(error) {
+              if (error) { throw error; }
+            });
           });
-        });
-      } 
-    });
+        } 
+      });
   });
 };
