@@ -11,14 +11,12 @@
   },
   "devDependencies": {
     "chai": "^1.9.0",
-    "eslint-config-hackreactor": "git://github.com/hackreactor-labs/eslint-config-hackreactor",
     "mocha": "^1.21.4",
     "supertest": "^0.15.0"
   },
   "scripts": {
     "test": "mocha test",
     "start": "node ./web/basic-server.js",
-    "postinstall": "curl -s https://raw.githubusercontent.com/hackreactor-labs/pomander/master/bin/install | bash",
     "lint": "eslint ./"
   }
 }
