@@ -54,10 +54,9 @@ exports.downloadUrls = function(urlArray) {
   urlArray.forEach(function(pendingUrl) {
     exports.isUrlArchived(pendingUrl, function(exists) {
       if (!exists) {
-          fs.writeFile(exports.paths.archivedSites + '/' + pendingUrl, pendingUrl, function(err) {
-            if (err) { throw err; }
-          });
-        
+        fs.writeFile(exports.paths.archivedSites + '/' + pendingUrl, pendingUrl, function(err) {
+          if (err) { throw err; }
+        });
       } 
     });
   });
