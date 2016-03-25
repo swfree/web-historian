@@ -58,7 +58,10 @@ var postReq = function(req, res) {
     postContents += chunk;
   });
   req.on('end', function() {
-    var postedURL = qs.parse(postContents).url;
+
+
+    var postedURL = qs.parse(postContents).url; 
+
     archive.isUrlArchived(postedURL, function(nullError, exists){
       if(exists) {
         res.writeHead(302, {
@@ -89,8 +92,6 @@ var handleError = function(res, err) {
   }
 }
 
-// exports.getMessages = getMessages;
-// exports.postMessages = postMessages;
 exports.getStaticFiles = getStaticFiles;
 exports.getArchiveStaticFiles = getSiteArchiveStaticFiles;
 exports.postReq = postReq;
